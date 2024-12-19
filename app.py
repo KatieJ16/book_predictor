@@ -16,6 +16,7 @@ from goodreads_helpers import *
 # print(mask)
 
 
+
 #Define autoencoder
 class SparseAutoencoder(nn.Module):
     def __init__(self, num_items, latent_dim):
@@ -138,7 +139,7 @@ st.title("Support Me ☕")
 st.write("If you enjoy this app, feel free to buy me a coffee! Your support is much appreciated!")
 
 # Add a PayPal link
-coffee_link = "https://www.paypal.com/paypalme/16katiej/3"
+coffee_link = "https://www.paypal.com/paypalme/16katiej"
 st.markdown(f"[Buy Me a Coffee! ☕]({coffee_link})", unsafe_allow_html=True)
 st.write("Made with ❤️ using Streamlit.")
 
