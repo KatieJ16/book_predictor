@@ -3,4 +3,4 @@ torch
 numpy
 scikit-learn
 beautifulsoup4
-pandas
+pandas==1.5.3
