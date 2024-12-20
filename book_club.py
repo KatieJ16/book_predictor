@@ -61,18 +61,25 @@ with open("ratings_df.pkl", "rb") as file:
     ratings_df = pickle.load(file)
 
 # App title
-st.title("Book Recommendations")
+st.title("Book Recommendations - Book Club")
+st.write("Input the Goodreads User IDs for your book club. Then we will find a book everyone will love but no one has read yet!")
 
 # Input fields
 # st.write("What is your User ID for goodreads:")
 # user_id = st.number_input("Input 1 (x1):", value=0.0)
-user_id = int(st.number_input("What is your User ID for goodreads:", step=1))
-st.write("Your goodreads user id number is the number in your url. Got to your profile and look at the number after the last /.")
-st.write("My goodreads url is https://www.goodreads.com/user/show/169695558-katie, so my user id is 169695558.")
-num_entries = int(st.number_input("Number of Latest book reviews to consider (the more you have the better recommendations you'll get but the longer it will take):", step=1, value = 100))
+# user_id = int(st.number_input("What is your User ID for goodreads:", step=1))
+st.write("Your goodreads user id number is the number in your url. Got to your profile and look at the number after the last /. My goodreads url is https://www.goodreads.com/user/show/169695558-katie, so my user id is 169695558.")
+
+user_id = st.text_input("What are the User IDs for goodreads: (comma separate each user):", "1, 2, 3, 4, 5")
+
+# Convert to list of numbers
+user_id = [int(x.strip()) for x in user_id.split(",")]
+st.write("user_id = ", user_id)
+
+num_entries = int(st.number_input("Number of Latest book reviews to consider (the more you have the better recommendations you'll get but the longer it will take):", step=1, value = 25))
 
 # st.write("user_id = ", user_id)
-include_rereads = st.checkbox('Include Rereads?')
+# include_rereads = st.checkbox('Include Rereads?')
 # Predict button
 if st.button("Predict"):
     if user_id:
@@ -80,15 +87,17 @@ if st.button("Predict"):
             #get user data
             ratings_data = get_user_data(user_id, num_entries=num_entries)
 #             st.write("ratings_data = ", ratings_data)
+#             st.write("ratings_data = ", ratings_data)
             
             #make matrix of ratings
             # ratings = np.full((num_users, num_titles), None)
-            ratings = np.zeros((1, num_titles))
+            ratings = np.zeros((len(user_id), num_titles))
 
             for index, row in ratings_data.iterrows():
                 if row['Title'] in titles:
                     try:
-                        ratings[0, titles.index(row["Title"])] = int(row["Rating"])
+                        ratings[user_id.index(row['User_id']), titles.index(row["Title"])] = int(row["Rating"])
+                        
             #             print("found ", row["Title"])
                     except:
                         pass
@@ -101,25 +110,34 @@ if st.button("Predict"):
             with torch.no_grad():
                 reconstructed = model(ratings_torch)
                 
-            st.write("Finding best matches ...")
-            pred_ratings_list = reconstructed[0].detach().numpy()
-#             st.write(pred_ratings_list)
+            st.write("Finding best matches! Comparing to ", num_users, " readers and ", num_items, "books.")
+            pred_ratings_list = reconstructed.detach().numpy()
+#             st.write("pred_ratings_list = ", pred_ratings_list)
+            #take mean over axis 1
+            mean_ratings = np.mean(pred_ratings_list, axis = 0)
+#             st.write("mean_ratings = ", mean_ratings)
             #give a list sorted out with books you've already read:
-            sorted_indices = np.argsort(pred_ratings_list)[::-1]
+#             sorted_indices = np.argsort(pred_ratings_list)[::-1]
+            sorted_indices = np.argsort(mean_ratings)[::-1]
             st.write("Top books are:")
             list_num = 1
+#             st.write("mean_ratings shape = ", mean_ratings.shape)
+#             st.write("titles shape = ", len(titles))
+#             st.write("sorted_indices = ", sorted_indices)
             for idx in sorted_indices[:100]: 
                 #     print("ratings_matrix[user_id, idx]= ", ratings_matrix[user_id, idx])
-                if include_rereads:
-                    if  (np.isnan(pred_ratings_list[idx])) :
-                        continue
-                    st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(pred_ratings_list[idx], 1)))
-                    list_num += 1
-                else:#don't include rereads
-                    if  (ratings[0, idx] > 0) or(np.isnan(pred_ratings_list[idx])) :
-                        continue
-                    st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(pred_ratings_list[idx], 1)))
-                    list_num += 1
+#                 if include_rereads:
+                
+                if  (np.isnan(mean_ratings[idx])) or titles[idx] in ratings_data['Title'].values:
+#                     st.write("Not including ", titles[idx] , "because it was already read.")
+                    continue
+                st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(mean_ratings[idx], 1)))
+                list_num += 1
+#                 else:#don't include rereads
+#                     if  (ratings[0, idx] > 0) or(np.isnan(pred_ratings_list[idx])) :
+#                         continue
+#                     st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(pred_ratings_list[idx], 1)))
+#                     list_num += 1
 #             st.success(f"Prediction: {prediction[0]}")  # Display the prediction
         except Exception as e:
             st.error(f"An error occurred: {e}")

@@ -58,7 +58,7 @@ def scrape_goodreads_ratings(user_id, max_pages=10):
 
         print(f"Page {page} scraped successfully.")
         progress_bar.progress(page/(max_pages + 1))
-        time.sleep(random.uniform(1, 2))  # Be kind to the server and avoid being blocked
+        time.sleep(random.uniform(0,1))  # Be kind to the server and avoid being blocked
         
 
     progress_bar.progress(100)
@@ -76,16 +76,26 @@ def map_rating(phrase):
     
     return rating_map.get(phrase, "Invalid rating")  # Default to "Invalid rating" if the phrase isn't in the dictionary
 
-def get_user_data(user_id, save=False, num_entries=100):
+def get_user_data(user_id, save=False, num_entries=100, file_name="book_club_ratings.csv"):
     
     max_pages = math.ceil(num_entries/20)  # Adjust based on expected data
-    ratings_data = scrape_goodreads_ratings(user_id, max_pages)
+    if isinstance(user_id, int): #if just one user
+        ratings_data = scrape_goodreads_ratings(user_id, max_pages)
+    elif isinstance(user_id, list): #if many users
+        for user in user_id:
+            try:
+                new_data = scrape_goodreads_ratings(user, max_pages)
+                ratings_data = pd.concat([ratings_data, new_data], ignore_index=True)
+            except:
+                ratings_data = scrape_goodreads_ratings(user, max_pages)
+    else: 
+        st.write("Problem, Check that input is comma seperated.")
 #     st.write("num entries = ", ratings_data.shape)
 
     if save:
         if not ratings_data.empty:
-            ratings_data.to_csv('goodreads_ratings.csv', mode='a', header=False, index=False)
-            print("Data saved to goodreads_ratings.csv.")
+            ratings_data.to_csv(file_name, mode='a', header=False, index=False)
+            print("Data saved to ", file_name)
         else:
             print("No data retrieved.")
         
