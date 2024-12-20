@@ -10,6 +10,7 @@ import torch.optim as optim
 from sklearn.model_selection import KFold
 from goodreads_helpers import *
 from sklearn.neighbors import NearestNeighbors
+from PIL import Image
 
 
 method_options = ['Average', 'Neural Network', 'K nearest neighbors', 'All']
@@ -63,8 +64,19 @@ with open("ratings_df.pkl", "rb") as file:
     ratings_df = pickle.load(file)
 
 # App title
-st.title("The Bibliobrain")#Book Recommendations")
-st.subheader("Use AI to recommend your next great Book!") 
+# Load the logo image
+logo = Image.open("logo.png") 
+
+# Create a container to hold the logo and title
+with st.container():
+    col1, col2 = st.columns([1, 3])  # Adjust column widths as needed (e.g., [1, 3] for a smaller logo)
+    with col1:
+        st.image(logo)#, width=50)  # Adjust width as needed
+
+    with col2:
+#         st.title("Your App Title") 
+        st.title("The Bibliobrain")#Book Recommendations")
+        st.subheader("Use AI to recommend your next great Book!") 
 
 # Input fields
 st.write("Your goodreads user id number is the number in your url. Got to your profile and look at the number after the last /. My goodreads url is https://www.goodreads.com/user/show/169695558-katie, so my user id is 169695558.")
