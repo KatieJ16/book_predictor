@@ -67,6 +67,8 @@ st.title("Book Recommendations")
 # st.write("What is your User ID for goodreads:")
 # user_id = st.number_input("Input 1 (x1):", value=0.0)
 user_id = int(st.number_input("What is your User ID for goodreads:", step=1))
+st.write("Your goodreads user id number is the number in your url. Got to your profile and look at the number after the last /.")
+st.write("My goodreads url is https://www.goodreads.com/user/show/169695558-katie, so my user id is 169695558.")
 num_entries = int(st.number_input("Number of Latest book reviews to consider (the more you have the longer it takes):", step=1, value = 100))
 
 # st.write("user_id = ", user_id)
