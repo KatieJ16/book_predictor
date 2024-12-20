@@ -9,12 +9,10 @@ import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import KFold
 from goodreads_helpers import *
+from sklearn.neighbors import NearestNeighbors
 
-# # Mask for observed values (1 for observed, 0 for missing)
-# ratings_torch = torch.tensor(ratings).float()
-# mask = (ratings_torch != 0).float()
-# print(mask)
 
+method_options = ['Neural Network', 'K nearest neighbors', 'All', 'Average']
 
 
 #Define autoencoder
@@ -69,15 +67,16 @@ user_id = int(st.number_input("What is your User ID for goodreads:", step=1))
 
 num_entries = int(st.number_input("Number of Latest book reviews to consider (the more you have the better recommendations you'll get but the longer it will take):", step=1, value = 100))
 
-# st.write("user_id = ", user_id)
 include_rereads = st.checkbox('Include Rereads?')
+method = st.selectbox('Choose an method:', method_options)
 # Predict button
 if st.button("Predict"):
     if user_id:
         try:
             #get user data
             ratings_data = get_user_data(user_id, num_entries=num_entries)
-#             st.write("ratings_data = ", ratings_data)
+            st.write("Finding best matches! Comparing to ", num_users, " readers and ", num_items, "books.")
+
             
             #make matrix of ratings
             # ratings = np.full((num_users, num_titles), None)
@@ -91,34 +90,91 @@ if st.button("Predict"):
                     except:
                         pass
 
-#             st.write("ratings = ", ratings)
-            ratings_torch = torch.tensor(ratings).float()
-            
-            #Evaulating the model
-            model.eval()
-            with torch.no_grad():
-                reconstructed = model(ratings_torch)
+            if method == 'Average':
+                sum_ratings = np.zeros(ratings.shape[1])
+            if method in ('Neural Network', 'All', 'Average'):
+                ratings_torch = torch.tensor(ratings).float()
+
+                #Evaulating the model
+                model.eval()
+                with torch.no_grad():
+                    reconstructed = model(ratings_torch)
+
+                pred_ratings_list = reconstructed[0].detach().numpy()
+                #give a list sorted out with books you've already read:
+                sorted_indices = np.argsort(pred_ratings_list)[::-1]
+                st.write("Top books are:")
+                list_num = 1
+                if method == 'Average':
+                    sum_ratings += pred_ratings_list
+                else:
+                    for idx in sorted_indices[:10]: 
+                        if include_rereads:
+                            if  (np.isnan(pred_ratings_list[idx])) :
+                                continue
+                            st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(pred_ratings_list[idx], 1)))
+                        else:#don't include rereads
+                            if  (ratings[0, idx] > 0) or(np.isnan(pred_ratings_list[idx])) :
+                                continue
+                            st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(pred_ratings_list[idx], 1)))
+                        list_num += 1
                 
-            st.write("Finding best matches! Comparing to ", num_users, " readers and ", num_items, "books.")
-            pred_ratings_list = reconstructed[0].detach().numpy()
-#             st.write(pred_ratings_list)
-            #give a list sorted out with books you've already read:
-            sorted_indices = np.argsort(pred_ratings_list)[::-1]
-            st.write("Top books are:")
-            list_num = 1
-            for idx in sorted_indices[:100]: 
-                #     print("ratings_matrix[user_id, idx]= ", ratings_matrix[user_id, idx])
-                if include_rereads:
-                    if  (np.isnan(pred_ratings_list[idx])) :
-                        continue
-                    st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(pred_ratings_list[idx], 1)))
-                    list_num += 1
-                else:#don't include rereads
-                    if  (ratings[0, idx] > 0) or(np.isnan(pred_ratings_list[idx])) :
-                        continue
-                    st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(pred_ratings_list[idx], 1)))
-                    list_num += 1
-#             st.success(f"Prediction: {prediction[0]}")  # Display the prediction
+            
+            if method in ('K nearest neighbors', 'All', 'Average'):
+                #load knn 
+                with open("knn_model.pkl", "rb") as file:
+                    knn = pickle.load(file)
+
+                #get neighbors of new 
+                st.write("ratings shape = ", ratings.shape)
+                distances, indices = knn.kneighbors(ratings)
+                ratings_matrix = ratings_df.values
+
+                pred_ratings_list = np.array([])
+                rankings_list = np.array([])
+                for item_id in range(num_titles):
+                    # Get the ratings for the neighbors on item 2
+                    neighbor_ratings = np.array([ratings_matrix[i, item_id] for i in indices[0] if not np.isnan(ratings_matrix[i, item_id])])
+
+                    predicted_rating = np.mean(neighbor_ratings[np.nonzero(neighbor_ratings)])
+                    rankings = np.sum(neighbor_ratings[np.nonzero(neighbor_ratings)])
+                    
+                    pred_ratings_list = np.append(pred_ratings_list, predicted_rating)
+                    rankings_list = np.append(rankings_list, rankings)
+
+                best_book_rating = np.max(pred_ratings_list)
+                best_book_idx = np.argmax(pred_ratings_list)
+
+                sorted_indices = np.argsort(pred_ratings_list)[::-1]
+                st.write("Top books are:")
+                list_num = 1 
+                if method == 'Average':
+                    sum_ratings += np.where(np.isnan(pred_ratings_list), 0, pred_ratings_list)
+                else:
+                    for i, idx in enumerate(sorted_indices): 
+                        if (ratings[0, idx] > 0) or (np.isnan(pred_ratings_list[idx])):
+                            pass
+                        else:
+                            st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(pred_ratings_list[idx], 1)))
+                            list_num += 1
+                        if list_num > 10:
+                            break
+                            
+            #print our results for average
+            if method == 'Average':
+                list_num = 1
+                sum_ratings = sum_ratings/2
+                sorted_indices = np.argsort(sum_ratings)[::-1]
+                for idx in sorted_indices: 
+                        if include_rereads:
+                            if  (np.isnan(pred_ratings_list[idx])) :
+                                continue
+                            st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(sum_ratings[idx], 1)))
+                        else:#don't include rereads
+                            if  (ratings[0, idx] > 0) or(np.isnan(pred_ratings_list[idx])) :
+                                continue
+                            st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(sum_ratings[idx], 1)))
+                        list_num += 1
         except Exception as e:
             st.error(f"An error occurred: {e}")
     else:
