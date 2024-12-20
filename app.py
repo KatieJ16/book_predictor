@@ -14,6 +14,10 @@ from sklearn.neighbors import NearestNeighbors
 
 method_options = ['Average', 'Neural Network', 'K nearest neighbors', 'All']
 
+st.set_page_config(
+    page_title="The Bibliobrain",
+    page_icon="logo.png"  # Replace with the actual path to your logo image
+)
 
 #Define autoencoder
 class SparseAutoencoder(nn.Module):
