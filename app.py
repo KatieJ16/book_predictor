@@ -63,7 +63,8 @@ with open("ratings_df.pkl", "rb") as file:
     ratings_df = pickle.load(file)
 
 # App title
-st.title("Book Recommendations")
+st.title("The Bibliobrain")#Book Recommendations")
+st.subheader("Use AI to recommend your next great Book!") 
 
 # Input fields
 st.write("Your goodreads user id number is the number in your url. Got to your profile and look at the number after the last /. My goodreads url is https://www.goodreads.com/user/show/169695558-katie, so my user id is 169695558.")
