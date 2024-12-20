@@ -12,7 +12,7 @@ from goodreads_helpers import *
 from sklearn.neighbors import NearestNeighbors
 
 
-method_options = ['Neural Network', 'K nearest neighbors', 'All', 'Average']
+method_options = ['Average', 'Neural Network', 'K nearest neighbors', 'All']
 
 
 #Define autoencoder
@@ -126,7 +126,6 @@ if st.button("Predict"):
                     knn = pickle.load(file)
 
                 #get neighbors of new 
-                st.write("ratings shape = ", ratings.shape)
                 distances, indices = knn.kneighbors(ratings)
                 ratings_matrix = ratings_df.values
 
