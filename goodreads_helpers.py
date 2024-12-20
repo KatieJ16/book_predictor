@@ -100,3 +100,30 @@ def get_user_data(user_id, save=False, num_entries=100, file_name="book_club_rat
             print("No data retrieved.")
         
     return ratings_data
+
+
+# Function to fetch book data from Google Books API
+def fetch_book_cover(title):
+    base_url = "https://www.googleapis.com/books/v1/volumes"
+    params = {"q": title, "maxResults": 1}  # Search for the title
+    response = requests.get(base_url, params=params)
+    
+    if response.status_code == 200:
+        data = response.json()
+        if "items" in data and len(data["items"]) > 0:
+            book_info = data["items"][0]["volumeInfo"]
+            title = book_info.get("title", "No Title Available")
+            cover_url = book_info.get("imageLinks", {}).get("thumbnail", None)
+            return title, cover_url
+    return None, None
+
+def show_book_pic(book_title):
+    with st.spinner("Searching for the book cover..."):
+        title, cover_url = fetch_book_cover(book_title)
+
+    if cover_url:
+#         st.success(f"Found: {title}")
+        st.image(cover_url, caption=title, width=192)
+    else:
+        st.error("Could not find a book cover for the given title.")
+
