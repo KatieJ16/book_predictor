@@ -57,6 +57,9 @@ with open("titles.pkl", "rb") as file:
 with open("top_100.pkl", "rb") as file:
     top_100 = pickle.load(file)
     
+with open("suggest.pkl", "rb") as file:
+    suggest = pickle.load(file)
+    
 num_titles = len(titles)
 
 # Load the list from the file
@@ -76,7 +79,7 @@ with st.container():
     with col2:
 #         st.title("Your App Title") 
         st.title("The Bibliobrain")#Book Recommendations")
-        st.subheader("Use AI to recommend your next great Book!") 
+        st.subheader("Use AI to recommend your next great Read!") 
 
 # Input fields
 st.write("Your goodreads user id number is the number in your url. Got to your profile and look at the number after the last /. My goodreads url is https://www.goodreads.com/user/show/169695558-katie, so my user id is 169695558.")
@@ -87,13 +90,14 @@ user_id = int(st.number_input("What is your User ID for goodreads:", step=1))
 num_entries = st.slider("Number of Books to import (the more you have, the better the recommendations, but the longer it will take):", min_value=1, max_value=1000, value=100, step=1)
 
 include_rereads = st.checkbox('Include Rereads?')
-method = st.selectbox('Choose an method:', method_options)
+method = st.selectbox('Choose an method (Choose Average for best results):', method_options)
 # Predict button
 if st.button("Predict"):
     if user_id:
         try:
             #get user data
             ratings_data = get_user_data(user_id, num_entries=num_entries)
+#             st.write(ratings_data)
             st.write("Finding best matches! Comparing to ", num_users, " readers and ", num_items, "books.")
 
             
@@ -182,7 +186,34 @@ if st.button("Predict"):
             if method == 'Average':
                 list_num = 1
                 sum_ratings = sum_ratings/2
+                if include_rereads: #get average of their rating and predicted rating
+#                     sum_ratings = (sum_ratings + ratings[0]) / 2 #Their own rating get's as much weight as the predicted
+                    # Initialize an array to store the results
+                    result = sum_ratings.copy()
+
+                    # Loop through the arrays and calculate the average ignoring zero elements
+                    for i in range(len(sum_ratings)):
+                        if ratings[0][i] != 0 and sum_ratings[i] != 0:
+                            result[i] = (ratings[0][i] + sum_ratings[i]) / 2
+                        elif ratings[0][i] != 0:
+                            result[i] = ratings[0][i]
+                        elif sum_ratings[i] != 0:
+                            result[i] = sum_ratings[i]
+                        else:
+                            result[i] = 0
+                    sum_ratings = result#combined[mask].mean(axis = 1)
                 sorted_indices = np.argsort(sum_ratings)[::-1]
+                score = np.zeros(sum_ratings.shape)
+                for idx, rating in enumerate(sum_ratings):
+                    score[idx] += sum_ratings[idx]
+                    #add a point for every person that read the book in your group
+                    neighbor_ratings = np.array([ratings_matrix[i, idx] for i in indices[0] if not np.isnan(ratings_matrix[i, idx])])
+                    score[idx] += min(len(neighbor_ratings[np.nonzero(neighbor_ratings)]>5) *0.05, 1)
+                    if include_rereads and (ratings[0, idx] == 5): #if they rated 5, give big boost.
+#                         st.write("You loved ", titles[idx])
+                        score[idx] += 0.1
+                #sort based on score
+                sorted_indices = np.argsort(score)[::-1]
                 for idx in sorted_indices: 
                         if include_rereads:
                             if  (np.isnan(pred_ratings_list[idx])) :
@@ -191,7 +222,11 @@ if st.button("Predict"):
                         else:#don't include rereads
                             if  (ratings[0, idx] > 0) or(np.isnan(pred_ratings_list[idx])) :
                                 continue
-                            st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(sum_ratings[idx], 1)))
+                            if suggest[idx]: #exclude later books in series
+                                st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(sum_ratings[idx], 1)))#,  ' - Score: ', str(round(score[idx],1)))
+#                             if round(sum_ratings[idx], 1) > 0:
+#                                 neighbor_ratings = np.array([ratings_matrix[i, idx] for i in indices[0] if not np.isnan(ratings_matrix[i, idx])])
+#                                 st.write(str(neighbor_ratings[np.nonzero(neighbor_ratings)]))
                         list_num += 1
         except Exception as e:
             st.error(f"An error occurred: {e}")
