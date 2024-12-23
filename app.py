@@ -20,6 +20,8 @@ st.set_page_config(
     page_icon="logo.png"  # Replace with the actual path to your logo image
 )
 
+st.sidebar.success("Select a demo above.")
+
 #Define autoencoder
 class SparseAutoencoder(nn.Module):
     def __init__(self, num_items, latent_dim):
@@ -213,7 +215,7 @@ if st.button("Predict"):
 #                         st.write("You loved ", titles[idx])
                         score[idx] += 0.1
                 #sort based on score
-                sorted_indices = np.argsort(score)[::-1]
+#                 sorted_indices = np.argsort(score)[::-1]
                 for idx in sorted_indices: 
                         if include_rereads:
                             if  (np.isnan(pred_ratings_list[idx])) :
