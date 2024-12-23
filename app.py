@@ -82,7 +82,9 @@ with st.container():
 st.write("Your goodreads user id number is the number in your url. Got to your profile and look at the number after the last /. My goodreads url is https://www.goodreads.com/user/show/169695558-katie, so my user id is 169695558.")
 user_id = int(st.number_input("What is your User ID for goodreads:", step=1))
 
-num_entries = int(st.number_input("Number of Latest book reviews to consider (the more you have the better recommendations you'll get but the longer it will take):", step=1, value = 100))
+# num_entries = int(st.number_input("Number of Books to import (the more you have, the better the recommendations, but the longer it will take):", step=1, value = 100))
+
+num_entries = st.slider("Number of Books to import (the more you have, the better the recommendations, but the longer it will take):", min_value=1, max_value=1000, value=100, step=1)
 
 include_rereads = st.checkbox('Include Rereads?')
 method = st.selectbox('Choose an method:', method_options)
