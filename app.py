@@ -122,11 +122,11 @@ if st.button("Predict"):
                 pred_ratings_list = reconstructed[0].detach().numpy()
                 #give a list sorted out with books you've already read:
                 sorted_indices = np.argsort(pred_ratings_list)[::-1]
-                st.write("Top books are:")
                 list_num = 1
                 if method == 'Average':
                     sum_ratings += pred_ratings_list
                 else:
+                    st.write("Top books are:")
                     for idx in sorted_indices[:10]: 
                         if include_rereads:
                             if  (np.isnan(pred_ratings_list[idx])) :
@@ -164,11 +164,11 @@ if st.button("Predict"):
                 best_book_idx = np.argmax(pred_ratings_list)
 
                 sorted_indices = np.argsort(pred_ratings_list)[::-1]
-                st.write("Top books are:")
                 list_num = 1 
                 if method == 'Average':
                     sum_ratings += np.where(np.isnan(pred_ratings_list), 0, pred_ratings_list)
                 else:
+                    st.write("Top books are:")
                     for i, idx in enumerate(sorted_indices): 
                         if (ratings[0, idx] > 0) or (np.isnan(pred_ratings_list[idx])):
                             pass
