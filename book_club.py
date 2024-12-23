@@ -76,7 +76,8 @@ user_id = st.text_input("What are the User IDs for goodreads: (comma separate ea
 user_id = [int(x.strip()) for x in user_id.split(",")]
 st.write("user_id = ", user_id)
 
-num_entries = int(st.number_input("Number of Latest book reviews to consider (the more you have the better recommendations you'll get but the longer it will take):", step=1, value = 25))
+# num_entries = int(st.number_input("Number of Latest book reviews to consider (the more you have the better recommendations you'll get but the longer it will take):", step=1, value = 25))
+num_entries = st.slider("Number of Books to import (the more you have, the better the recommendations, but the longer it will take):", min_value=1, max_value=500, value=20, step=1)
 
 # st.write("user_id = ", user_id)
 # include_rereads = st.checkbox('Include Rereads?')
