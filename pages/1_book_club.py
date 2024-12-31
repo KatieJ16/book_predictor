@@ -117,7 +117,7 @@ if st.button("Predict"):
                     continue
                 st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(mean_ratings[idx], 1)))
                 list_num += 1
-                st.write("Predicted each = ", pred_ratings_list[:,idx])
+#                 st.write("Predicted each = ", pred_ratings_list[:,idx])
         except Exception as e:
             st.error(f"An error occurred: {e}")
     else:
