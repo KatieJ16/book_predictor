@@ -90,7 +90,7 @@ with st.container():
         st.subheader("Use AI to recommend your next great Book!") 
 # st.image("./logo.png")
 
-st.write("Here we will find users similar to you. Then pick a book you like, and we will find books most similar to that book based on similar reads.")
+st.write("Here we will find users similar to you. Then pick a book you like, and we will find books most similar to that book based on similar readers.")
 # Input fields
 st.write("Your goodreads user id number is the number in your url. Got to your profile and look at the number after the last /. My goodreads url is https://www.goodreads.com/user/show/169695558-katie, so my user id is 169695558.")
 user_id = int(st.number_input("What is your User ID for goodreads:", step=1))
@@ -126,23 +126,43 @@ if st.button("Get Your User Data"):
     # include_rereads = st.checkbox('Include Rereads?')
     # method = st.selectbox('Choose an method:', method_options)
 if st.session_state["data"]:
-    titles_list = st.session_state["data"]["titles_list"]
+    full_titles_list = st.session_state["data"]["titles_list"]
 #     print("ratings = ", ratings)
+
+    #load the model
+    if st.session_state["data"]:
+        ratings = st.session_state["data"]["ratings"]
+        print("ratings = ", ratings)
+    else:
+        st.warning("No data available. Need to User data first.")
+    #load knn 
+    with open("knn_model_30.pkl", "rb") as file:
+        knn = pickle.load(file)
+
+    distances, indices = knn.kneighbors(ratings)
+#     close_ratings = np.column_stack((ratings_matrix[indices[0]].T, ratings.T))
+    close_ratings = ratings_matrix[indices[0]].T
+    average_ratings = np.nanmean(np.where(close_ratings == 0, np.nan, close_ratings), axis=1)#np.mean(close_ratings, axis=1)
+    nonzeros_per_column = np.count_nonzero(close_ratings, axis=1)
+#     st.write("Number of non-zero elements in each column:", nonzeros_per_column)
+    
+#     st.write("titles_list = ", len(full_titles_list))
+#     st.write("nonzeros_per_column = ", len(nonzeros_per_column))
+#     st.write("close_ratings = ", close_ratings.shape)
+#     titles_list = [full_titles_list[i] for i in range(len(full_titles_list)) if nonzeros_per_column[i] > 3]
+    titles_list = [titles[i] for i in range(len(titles)) if nonzeros_per_column[i] > 3]
+
+#     st.write("titles_list = ", len(titles_list))
+    titles_list = list(set(full_titles_list) & set(titles_list))
+#     st.write("titles_list = ", len(titles_list))
     book = st.selectbox('Pick a book to find similar books: ', titles_list)
+    
+    
 # Predict button
-if st.button("Recommend Book!"):
+if st.button("Recommend Books!"):
     if user_id:
         try:
-            if st.session_state["data"]:
-                ratings = st.session_state["data"]["ratings"]
-                print("ratings = ", ratings)
-            else:
-                st.warning("No data available. Need to User data first.")
-            #load knn 
-            with open("knn_model_30.pkl", "rb") as file:
-                knn = pickle.load(file)
-                
-            distances, indices = knn.kneighbors(ratings)
+            
             
             #get the ratings of nearby nieghbors
 #             st.write("ratings_matrix[indices[0]] shape = ", ratings_matrix[indices[0]].shape)
@@ -153,13 +173,15 @@ if st.button("Recommend Book!"):
             
             #find books that are like selected book
             #find nearby books
-            knn = NearestNeighbors(n_neighbors=20, metric='cosine')  # Using cosine similarity #math.ceil(num_users/10)
+            knn = NearestNeighbors(n_neighbors=100, metric='cosine')  # Using cosine similarity #math.ceil(num_users/10)
             knn.fit(close_ratings)
             
 #             title_this = "Harry Potter and the Goblet of Fire\n        (Harry Potter, #4)"
             item_id = titles.index(book)
             average_ratings = np.nanmean(np.where(close_ratings == 0, np.nan, close_ratings), axis=1)#np.mean(close_ratings, axis=1)
-            st.write("Finding books similar to: ", titles[item_id], " - Group Rating: ", str(round(average_ratings[item_id], 1)))
+            nonzeros_per_column = np.count_nonzero(close_ratings, axis=1)
+#             st.write("Number of non-zero elements in each column:", nonzeros_per_column)
+            st.write("Finding books similar to: ", titles[item_id], " - Group Rating: ", str(round(average_ratings[item_id], 1)))#, "Number rated", str(nonzeros_per_column[item_id]))
             # item_id = np.nanargmax(average_ratings) # Index of item to predict rating for
             # print("highest rated book = ", titles[item_id], "ratings = ", average_ratings[item_id])
 
@@ -173,7 +195,8 @@ if st.button("Recommend Book!"):
                 if idx == item_id:
                     pass
                 else:
-                    st.write(str(i+1), ": ", titles[idx], "- Predicted Rating: ", str(round(average_ratings[idx], 1)))
+                    if nonzeros_per_column[idx] > 3:
+                        st.write(str(i+1), ": ", titles[idx], "- Predicted Rating: ", str(round(average_ratings[idx], 1)))#, "Number rated", str(nonzeros_per_column[idx]))
 
 
             #########
