@@ -271,8 +271,8 @@ if st.button("Predict"):
 #                                 neighbor_ratings = np.array([ratings_matrix[i, idx] for i in indices[0] if not np.isnan(ratings_matrix[i, idx])])
 #                                 st.write(str(neighbor_ratings[np.nonzero(neighbor_ratings)]))
                         list_num += 1
-                display_image_grid(title_list, pred_ratings_list=pred_list, columns=5)
-
+                display_image_grid(title_list, pred_list, columns=5)
+                
         except Exception as e:
             st.error(f"An error occurred: {e}")
     else:
