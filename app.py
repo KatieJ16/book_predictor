@@ -103,53 +103,34 @@ if st.button("Predict"):
         try:
             col1, col2 = st.columns([0.1, 0.9])
             with col1:
-                #get user id picture:
-                url = f"https://www.goodreads.com/user/show/{user_id}"
-                headers = {"User-Agent": "Mozilla/5.0"}
-                response = requests.get(url, headers=headers)
+                try:
+                    #get user id picture:
+                    url = f"https://www.goodreads.com/user/show/{user_id}"
+                    headers = {"User-Agent": "Mozilla/5.0"}
+                    response = requests.get(url, headers=headers)
 
-#                 st.write(response.status_code)
+    #                 st.write(response.status_code)
 
-                # Check if the request was successful
-                if response.status_code == 200:
-                    soup = BeautifulSoup(response.content, 'html.parser')
+                    # Check if the request was successful
+                    if response.status_code == 200:
+                        soup = BeautifulSoup(response.content, 'html.parser')
 
-        #             st.write(soup)
-                    # Extract the profile picture (typically within an <img> tag)
-                    profile_picture_tag = soup.find('img', class_='og:image')
-                    og_image_tag = soup.find('meta', property='og:image')
-        #             if og_image_tag and og_image_tag.get('content'):
-                    profile_picture_url = og_image_tag['content']
+                        # Extract the profile picture (typically within an <img> tag)
+                        profile_picture_tag = soup.find('img', class_='og:image')
+                        og_image_tag = soup.find('meta', property='og:image')
+                        profile_picture_url = og_image_tag['content']
+                        if og_image_tag:
+                            img_response = requests.get(profile_picture_url)
+                            if img_response.status_code == 200:
+                                img = Image.open(BytesIO(img_response.content))
 
-#                     st.write(profile_picture_url)
-        #             if profile_picture_tag:
-        #             profile_picture_url = profile_picture_tag['src']
-#                     st.write(f"Profile Picture URL: {profile_picture_url}")
-        #                 if profile_picture_url:
-                    img_response = requests.get(profile_picture_url)
-        #                 if img_response.status_code == 200:
-#                     with open("profile_picture.jpg", "wb") as file:
-#                         file.write(img_response.content)
-#                         print("Profile picture saved as 'profile_picture.jpg'")
-                    img = Image.open(BytesIO(img_response.content))
-#                     buffered = BytesIO()
-
-                    # Display the profile picture
-                    st.image(crop_circle(img))#, caption="Goodreads Profile Picture")#, use_column_width=True)
-#                     img_base64 = base64.b64encode(buffered.getvalue()).decode()
-#                     st.markdown(
-#                     f"""
-#                     <div style="display: flex; justify-content: center; align-items: center;">
-#                         <img src="data:image/png;base64,{img_base64}" 
-#                              style="width: 200px; height: 200px; border-radius: 50%; object-fit: cover;"/>
-#                     </div>
-#                     """,
-#                     unsafe_allow_html=True
-#                 )
-#                     st.write(f"Profile picture URL: {profile_picture_url}")
-                else:
-    #                 else:
-                        st.write("Profile picture not found.")
+                            # Display the profile picture
+                            st.image(crop_circle(img))#, caption="Goodreads Profile Picture")
+                    else:
+        #                 else:
+                            print("Profile picture not found.")
+                except:
+                    pass
                 
             with col2:
                 #get user data
@@ -159,7 +140,6 @@ if st.button("Predict"):
 
             
             #make matrix of ratings
-            # ratings = np.full((num_users, num_titles), None)
             ratings = np.zeros((1, num_titles))
 
             for index, row in ratings_data.iterrows():
