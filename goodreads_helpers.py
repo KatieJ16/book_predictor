@@ -119,6 +119,31 @@ def fetch_book_cover(title):
             return title, cover_url
     return None, None
 
+def get_goodreads_cover(book_title):
+    # Create a search URL with the book title
+    search_query = book_title.replace(" ", "+")
+    url = f"https://www.goodreads.com/search?q={search_query}"
+    
+    # Send a GET request
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
+    }
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        # Parse the HTML content
+        soup = BeautifulSoup(response.content, "html.parser")
+        
+        # Find the first search result with the book cover
+        book_cover = soup.find("img", class_="bookCover")
+        
+        if book_cover and "src" in book_cover.attrs:
+            return book_cover["src"]  # Return the URL of the book cover image
+        else:
+            return "No cover image found."
+    else:
+        return f"Failed to retrieve data. Status code: {response.status_code}"
+    
 def show_book_pic(book_title, show=False):
     with st.spinner("Searching for the book cover..."):
         title, cover_url = fetch_book_cover(book_title)
@@ -160,7 +185,7 @@ def display_image_grid(image_list, pred_ratings_list=None, columns=3):
             if image_index < len(image_list):
                 with cols[col_index]:
 #                     st.write(image_list[image_index])
-                    title, cover_url = fetch_book_cover(image_list[image_index])
+                    cover_url = get_goodreads_cover(image_list[image_index].split("\n")[0])
                     try:
                         st.image(cover_url)#, caption=image_list[image_index])#, use_column_width=True)
                     except:

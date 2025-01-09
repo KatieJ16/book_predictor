@@ -253,7 +253,7 @@ if st.button("Predict"):
 #                 sorted_indices = np.argsort(score)[::-1]
                 title_list = []
                 pred_list = []
-                for idx in sorted_indices: 
+                for idx in sorted_indices[:99]: 
                     if include_rereads:
                         if  (np.isnan(pred_ratings_list[idx])) :
                             continue
@@ -271,7 +271,7 @@ if st.button("Predict"):
 #                                 neighbor_ratings = np.array([ratings_matrix[i, idx] for i in indices[0] if not np.isnan(ratings_matrix[i, idx])])
 #                                 st.write(str(neighbor_ratings[np.nonzero(neighbor_ratings)]))
                         list_num += 1
-                display_image_grid(title_list, pred_list, columns=5)
+                display_image_grid(title_list, pred_list, columns=3)
                 
         except Exception as e:
             st.error(f"An error occurred: {e}")
