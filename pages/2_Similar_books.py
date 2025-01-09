@@ -12,6 +12,11 @@ from goodreads_helpers import *
 from sklearn.neighbors import NearestNeighbors
 import sys
 import os
+from PIL import Image,  ImageOps, ImageDraw
+from bs4 import BeautifulSoup
+from io import BytesIO
+import base64
+
 
 # Add the parent directory to sys.path
 parent_directory = os.path.abspath(os.path.join(os.getcwd(), '..'))
@@ -100,8 +105,40 @@ num_entries = 100#int(st.number_input("Number of Latest book reviews to consider
 book = 'The Great Gatsby'
 if st.button("Get Your User Data"):
     #get user data
-    st.write("Finding best matched Readers! Comparing to ", num_users, " readers and ", num_items, "books.")
-    ratings_data = get_user_data(user_id, num_entries=num_entries)
+    col1, col2 = st.columns([0.1, 0.9])
+    with col1:
+        try:
+            #get user id picture:
+            url = f"https://www.goodreads.com/user/show/{user_id}"
+            headers = {"User-Agent": "Mozilla/5.0"}
+            response = requests.get(url, headers=headers)
+
+#                 st.write(response.status_code)
+
+            # Check if the request was successful
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+
+                # Extract the profile picture (typically within an <img> tag)
+                profile_picture_tag = soup.find('img', class_='og:image')
+                og_image_tag = soup.find('meta', property='og:image')
+                profile_picture_url = og_image_tag['content']
+                if og_image_tag:
+                    img_response = requests.get(profile_picture_url)
+                    if img_response.status_code == 200:
+                        img = Image.open(BytesIO(img_response.content))
+
+                    # Display the profile picture
+                    st.image(crop_circle(img))#, caption="Goodreads Profile Picture")
+            else:
+#                 else:
+                    print("Profile picture not found.")
+        except:
+            pass
+
+    with col2:
+        st.write("Finding best matched Readers! Comparing to ", num_users, " readers and ", num_items, "books.")
+        ratings_data = get_user_data(user_id, num_entries=num_entries)
     
 
     #make matrix of ratings
