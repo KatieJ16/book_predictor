@@ -186,9 +186,9 @@ def display_image_grid(image_list, pred_ratings_list=None, columns=3):
                 with cols[col_index]:
 #                     st.write(image_list[image_index])
                     cover_url = get_goodreads_cover(image_list[image_index].split("\n")[0])
-#                     try:
-                    st.image(cover_url)#, caption=image_list[image_index])#, use_column_width=True)
-#                     except:
-#                         pass
+                    try:
+                        st.image(cover_url)#, caption=image_list[image_index])#, use_column_width=True)
+                    except:
+                        pass
                     if pred_ratings_list is not None:
                         st.write(image_list[image_index] + " - Predicted Rating:", str(round(pred_ratings_list[image_index], 1)))
