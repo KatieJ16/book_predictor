@@ -103,7 +103,7 @@ if st.button("Predict"):
         try:
             col1, col2 = st.columns([0.1, 0.9])
             with col1:
-#                 try:
+                try:
                     #get user id picture:
                     url = f"https://www.goodreads.com/user/show/{user_id}"
                     headers = {"User-Agent": "Mozilla/5.0"}
@@ -129,8 +129,8 @@ if st.button("Predict"):
                     else:
         #                 else:
                             print("Profile picture not found.")
-#                 except:
-#                     pass
+                except:
+                    pass
                 
             with col2:
                 #get user data

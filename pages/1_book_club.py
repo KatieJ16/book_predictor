@@ -42,7 +42,7 @@ model = SparseAutoencoder(num_items, latent_dim)
 # Load your machine learning model (replace "model.pkl" with your actual model file)
 # Example: A model trained to predict numerical output based on text input
 try:
-    model.load_state_dict(torch.load("model.pkl"))
+    model.load_state_dict(torch.load("model{}.pkl".format(latent_dim)))
 except FileNotFoundError:
     st.error("Model file not found! Make sure 'model.pkl' is in the same directory.")
 
