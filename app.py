@@ -10,7 +10,11 @@ import torch.optim as optim
 from sklearn.model_selection import KFold
 from goodreads_helpers import *
 from sklearn.neighbors import NearestNeighbors
-from PIL import Image
+from PIL import Image,  ImageOps, ImageDraw
+from bs4 import BeautifulSoup
+from io import BytesIO
+import base64
+
 
 
 method_options = ['Average', 'Neural Network', 'K nearest neighbors', 'All']
@@ -47,7 +51,7 @@ model = SparseAutoencoder(num_items, latent_dim)
 # Load your machine learning model (replace "model.pkl" with your actual model file)
 # Example: A model trained to predict numerical output based on text input
 try:
-    model.load_state_dict(torch.load("model.pkl"))
+    model.load_state_dict(torch.load("model{}.pkl".format(latent_dim)))
 except FileNotFoundError:
     st.error("Model file not found! Make sure 'model.pkl' is in the same directory.")
 
@@ -97,9 +101,60 @@ method = st.selectbox('Choose an method (Choose Average for best results):', met
 if st.button("Predict"):
     if user_id:
         try:
-            #get user data
-            ratings_data = get_user_data(user_id, num_entries=num_entries)
-#             st.write(ratings_data)
+            col1, col2 = st.columns([0.1, 0.9])
+            with col1:
+                #get user id picture:
+                url = f"https://www.goodreads.com/user/show/{user_id}"
+                headers = {"User-Agent": "Mozilla/5.0"}
+                response = requests.get(url, headers=headers)
+
+#                 st.write(response.status_code)
+
+                # Check if the request was successful
+                if response.status_code == 200:
+                    soup = BeautifulSoup(response.content, 'html.parser')
+
+        #             st.write(soup)
+                    # Extract the profile picture (typically within an <img> tag)
+                    profile_picture_tag = soup.find('img', class_='og:image')
+                    og_image_tag = soup.find('meta', property='og:image')
+        #             if og_image_tag and og_image_tag.get('content'):
+                    profile_picture_url = og_image_tag['content']
+
+#                     st.write(profile_picture_url)
+        #             if profile_picture_tag:
+        #             profile_picture_url = profile_picture_tag['src']
+#                     st.write(f"Profile Picture URL: {profile_picture_url}")
+        #                 if profile_picture_url:
+                    img_response = requests.get(profile_picture_url)
+        #                 if img_response.status_code == 200:
+#                     with open("profile_picture.jpg", "wb") as file:
+#                         file.write(img_response.content)
+#                         print("Profile picture saved as 'profile_picture.jpg'")
+                    img = Image.open(BytesIO(img_response.content))
+#                     buffered = BytesIO()
+
+                    # Display the profile picture
+                    st.image(crop_circle(img))#, caption="Goodreads Profile Picture")#, use_column_width=True)
+#                     img_base64 = base64.b64encode(buffered.getvalue()).decode()
+#                     st.markdown(
+#                     f"""
+#                     <div style="display: flex; justify-content: center; align-items: center;">
+#                         <img src="data:image/png;base64,{img_base64}" 
+#                              style="width: 200px; height: 200px; border-radius: 50%; object-fit: cover;"/>
+#                     </div>
+#                     """,
+#                     unsafe_allow_html=True
+#                 )
+#                     st.write(f"Profile picture URL: {profile_picture_url}")
+                else:
+    #                 else:
+                        st.write("Profile picture not found.")
+                
+            with col2:
+                #get user data
+                ratings_data = get_user_data(user_id, num_entries=num_entries)
+    #             st.write(ratings_data)
             st.write("Finding best matches! Comparing to ", num_users, " readers and ", num_items, "books.")
 
             

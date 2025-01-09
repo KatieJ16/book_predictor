@@ -7,6 +7,8 @@ import numpy as np
 import random
 import streamlit as st
 import math
+from PIL import Image,  ImageOps, ImageDraw
+
 
 def scrape_goodreads_ratings(user_id, max_pages=10):
     """
@@ -127,3 +129,12 @@ def show_book_pic(book_title):
     else:
         st.error("Could not find a book cover for the given title.")
 
+# Function to crop an image into a circle
+def crop_circle(image):
+    # Create a mask
+    mask = Image.new("L", image.size, 0)
+    draw = ImageDraw.Draw(mask)
+    draw.ellipse((0, 0, image.size[0], image.size[1]), fill=255)
+    result = ImageOps.fit(image, mask.size, centering=(0.5, 0.5))
+    result.putalpha(mask)
+    return result
