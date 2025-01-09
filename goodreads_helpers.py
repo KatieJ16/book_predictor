@@ -119,15 +119,18 @@ def fetch_book_cover(title):
             return title, cover_url
     return None, None
 
-def show_book_pic(book_title):
+def show_book_pic(book_title, show=False):
     with st.spinner("Searching for the book cover..."):
         title, cover_url = fetch_book_cover(book_title)
 
-    if cover_url:
-#         st.success(f"Found: {title}")
-        st.image(cover_url, caption=title, width=192)
-    else:
-        st.error("Could not find a book cover for the given title.")
+    if show:
+        if cover_url:
+    #         st.success(f"Found: {title}")
+            st.image(cover_url, caption=title, width=192)
+        else:
+            st.error("Could not find a book cover for the given title.")
+        
+    return cover_url
 
 # Function to crop an image into a circle
 def crop_circle(image):
@@ -138,3 +141,29 @@ def crop_circle(image):
     result = ImageOps.fit(image, mask.size, centering=(0.5, 0.5))
     result.putalpha(mask)
     return result
+
+def display_image_grid(image_list, pred_ratings_list=None, columns=3):
+    """
+    Displays a grid of images in Streamlit.
+    
+    Args:
+        images (list): List of image objects or file paths.
+        columns (int): Number of columns in the grid.
+    """
+#     st.write(image_list)
+#     st.write(pred_ratings_list)
+    rows = len(image_list) // columns + int(len(image_list) % columns != 0)
+    for row in range(rows):
+        cols = st.columns(columns)
+        for col_index in range(columns):
+            image_index = row * columns + col_index
+            if image_index < len(image_list):
+                with cols[col_index]:
+#                     st.write(image_list[image_index])
+                    title, cover_url = fetch_book_cover(image_list[image_index])
+                    try:
+                        st.image(cover_url)#, caption=image_list[image_index])#, use_column_width=True)
+                    except:
+                        pass
+                    if pred_ratings_list is not None:
+                        st.write(image_list[image_index] + " - Predicted Rating:", str(round(pred_ratings_list[image_index], 1)))

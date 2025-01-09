@@ -251,20 +251,28 @@ if st.button("Predict"):
                         score[idx] += 0.1
                 #sort based on score
 #                 sorted_indices = np.argsort(score)[::-1]
+                title_list = []
+                pred_list = []
                 for idx in sorted_indices: 
-                        if include_rereads:
-                            if  (np.isnan(pred_ratings_list[idx])) :
-                                continue
-                            st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(sum_ratings[idx], 1)))
-                        else:#don't include rereads
-                            if  (ratings[0, idx] > 0) or(np.isnan(pred_ratings_list[idx])) :
-                                continue
-                            if suggest[idx]: #exclude later books in series
-                                st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(sum_ratings[idx], 1)))#,  ' - Score: ', str(round(score[idx],1)))
+                    if include_rereads:
+                        if  (np.isnan(pred_ratings_list[idx])) :
+                            continue
+#                             st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(sum_ratings[idx], 1)))
+                        title_list.append(titles[idx])
+                        pred_list.append(sum_ratings[idx])
+                    else:#don't include rereads
+                        if  (ratings[0, idx] > 0) or(np.isnan(pred_ratings_list[idx])) :
+                            continue
+                        if suggest[idx]: #exclude later books in series
+                            title_list.append(titles[idx])
+                            pred_list.append(sum_ratings[idx])
+#                                 st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(sum_ratings[idx], 1)))#,  ' - Score: ', str(round(score[idx],1)))
 #                             if round(sum_ratings[idx], 1) > 0:
 #                                 neighbor_ratings = np.array([ratings_matrix[i, idx] for i in indices[0] if not np.isnan(ratings_matrix[i, idx])])
 #                                 st.write(str(neighbor_ratings[np.nonzero(neighbor_ratings)]))
                         list_num += 1
+                display_image_grid(title_list, pred_ratings_list=pred_list, columns=5)
+
         except Exception as e:
             st.error(f"An error occurred: {e}")
     else:
