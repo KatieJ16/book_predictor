@@ -254,7 +254,6 @@ if st.button("Predict"):
                         score[idx] += 0.1
     
                 score += ((average_ratings_list - 5))
-                st.write("score size = ", score.shape)
                 #sort based on score
                 sorted_indices = np.argsort(score)[::-1]
                 for idx in sorted_indices[:99]: 

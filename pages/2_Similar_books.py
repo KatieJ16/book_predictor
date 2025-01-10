@@ -49,6 +49,9 @@ with open("titles.pkl", "rb") as file:
 with open("top_100.pkl", "rb") as file:
     top_100 = pickle.load(file)
     
+with open("images_dict.pkl", "rb") as file:
+    images_dict = pickle.load(file)
+    
 num_titles = len(titles)
 
 # Load the list from the file
@@ -213,7 +216,7 @@ if st.button("Recommend Books!"):
                 else:
                     if nonzeros_per_column[idx] > 3:
                         col1, col2 = st.columns([0.2, 0.8])
-                        cover_url = get_goodreads_cover(titles[idx].split("\n")[0])
+                        cover_url = images_dict[titles[idx]]
                         with col1:
                             try:
                                 st.image(cover_url)#, caption=image_list[image_index])#, use_column_width=True)

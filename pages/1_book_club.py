@@ -65,6 +65,9 @@ num_titles = len(titles)
 # Load the list from the file
 with open("ratings_df.pkl", "rb") as file:
     ratings_df = pickle.load(file)
+    
+with open("images_dict.pkl", "rb") as file:
+    images_dict = pickle.load(file)
 
 # App title
 st.title("Book Club Recommendations")
@@ -123,7 +126,7 @@ if st.button("Predict"):
                 if  (np.isnan(mean_ratings[idx])) or titles[idx] in ratings_data['Title'].values or not suggest[idx]:
                     continue
                 col1, col2 = st.columns([0.2, 0.8])
-                cover_url = get_goodreads_cover(titles[idx].split("\n")[0])
+                cover_url = images_dict[titles[idx]]
                 with col1:
                     try:
                         st.image(cover_url)#, caption=image_list[image_index])#, use_column_width=True)
