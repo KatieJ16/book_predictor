@@ -75,7 +75,6 @@ with open("average_ratings_list.pkl", "rb") as file:
     
 with open("images_dict.pkl", "rb") as file:
     images_dict = pickle.load(file)
-   
     
 num_titles = len(titles)
 
@@ -94,7 +93,6 @@ with st.container():
         st.image(logo)#, width=50)  # Adjust width as needed
 
     with col2:
-#         st.title("Your App Title") 
         st.title("The Bibliobrain")#Book Recommendations")
         st.subheader("Use AI to recommend your next great Read!") 
 
@@ -102,9 +100,8 @@ with st.container():
 st.write("Your goodreads user id number is the number in your url. Got to your profile and look at the number after the last /. My goodreads url is https://www.goodreads.com/user/show/169695558-katie, so my user id is 169695558.")
 user_id = int(st.number_input("What is your User ID for goodreads:", step=1))
 
-# num_entries = int(st.number_input("Number of Books to import (the more you have, the better the recommendations, but the longer it will take):", step=1, value = 100))
 
-num_entries = st.slider("Number of Books to import (the more you have, the better the recommendations, but the longer it will take):", min_value=1, max_value=1000, value=100, step=1)
+num_entries = 250#st.slider("Number of Books to import (the more you have, the better the recommendations, but the longer it will take):", min_value=1, max_value=1000, value=100, step=1)
 
 include_rereads = st.checkbox('Include Rereads?')
 method = "Average"#st.selectbox('Choose an method (Choose Average for best results):', method_options)
@@ -120,7 +117,6 @@ if st.button("Predict"):
                     headers = {"User-Agent": "Mozilla/5.0"}
                     response = requests.get(url, headers=headers)
 
-    #                 st.write(response.status_code)
 
                     # Check if the request was successful
                     if response.status_code == 200:
@@ -136,20 +132,17 @@ if st.button("Predict"):
                                 img = Image.open(BytesIO(img_response.content))
 
                             # Display the profile picture
-                            st.image(crop_circle(img))#, caption="Goodreads Profile Picture")
+                            st.image(crop_circle(img))
                     else:
-        #                 else:
-                            print("Profile picture not found.")
+                        print("Profile picture not found.")
                 except:
                     pass
                 
             with col2:
                 #get user data
                 ratings_data = get_user_data(user_id, num_entries=num_entries)
-    #             st.write(ratings_data)
             st.write("Finding best matches! Comparing to ", num_users, " readers and ", num_items, "books.")
 
-            
             #make matrix of ratings
             ratings = np.zeros((1, num_titles)) #average_ratings_list.reshape((1, num_titles))#
 
@@ -157,7 +150,6 @@ if st.button("Predict"):
                 if row['Title'] in titles:
                     try:
                         ratings[0, titles.index(row["Title"])] = int(row["Rating"])
-            #             print("found ", row["Title"])
                     except:
                         pass
 
@@ -249,7 +241,7 @@ if st.button("Predict"):
                             result[i] = sum_ratings[i]
                         else:
                             result[i] = 0
-                    sum_ratings = result#combined[mask].mean(axis = 1)
+                    sum_ratings = result
                     
                 sorted_indices = np.argsort(sum_ratings)[::-1]
                 score = np.zeros(sum_ratings.shape)
@@ -259,7 +251,6 @@ if st.button("Predict"):
                     neighbor_ratings = np.array([ratings_matrix[i, idx] for i in indices[0] if not np.isnan(ratings_matrix[i, idx])])
                     score[idx] += min(len(neighbor_ratings[np.nonzero(neighbor_ratings)]>5) *0.05, 1)
                     if include_rereads and (ratings[0, idx] == 5): #if they rated 5, give big boost.
-#                         st.write("You loved ", titles[idx])
                         score[idx] += 0.1
     
                 score += ((average_ratings_list - 5))
@@ -271,10 +262,10 @@ if st.button("Predict"):
                         if  (np.isnan(pred_ratings_list[idx])) :
                             continue
                         col1, col2 = st.columns([0.2, 0.8])
-                        cover_url = get_goodreads_cover(titles[idx].split("\n")[0])
+                        cover_url = images_dict[titles[idx]]
                         with col1:
                             try:
-                                st.image(cover_url)#, caption=image_list[image_index])#, use_column_width=True)
+                                st.image(cover_url)
                             except:
                                 pass
                         with col2:
@@ -284,35 +275,21 @@ if st.button("Predict"):
                         if  (ratings[0, idx] > 0) or(np.isnan(pred_ratings_list[idx])) :
                             continue
                         if suggest[idx]: #exclude later books in series
-#                             title_list.append(titles[idx])
-#                             pred_list.append(sum_ratings[idx])
                             col1, col2 = st.columns([0.2, 0.8])
                             cover_url = images_dict[titles[idx]]
                             with col1:
                                 try:
-                                    st.image(cover_url)#, caption=image_list[image_index])#, use_column_width=True)
+                                    st.image(cover_url)
                                 except:
                                     pass
                             with col2:
                                 st.write( str(list_num)+'.' , titles[idx], " - Predicted Rating:", str(round(sum_ratings[idx], 1)))#,  ' - Score: ', str(round(score[idx],1)))
-#                             if round(sum_ratings[idx], 1) > 0:
-#                                 neighbor_ratings = np.array([ratings_matrix[i, idx] for i in indices[0] if not np.isnan(ratings_matrix[i, idx])])
-#                                 st.write(str(neighbor_ratings[np.nonzero(neighbor_ratings)]))
                             list_num += 1
-#                 display_image_grid(title_list, pred_list, columns=3)
                 
         except Exception as e:
             st.error(f"An error occurred: {e}")
     else:
         st.warning("Need your User ID.")
-
-# selected_option = st.selectbox(
-#     'Choose a book:',
-#     top_100
-# )
-
-# # Display the selected option
-# st.write(f"You selected: {selected_option}")
 
 
 # Footer
