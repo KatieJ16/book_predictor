@@ -26,32 +26,49 @@ st.set_page_config(
 
 st.sidebar.success("Select a demo above.")
 
-#Define autoencoder
+# #Define autoencoder
+# class SparseAutoencoder(nn.Module):
+#     def __init__(self, num_items, latent_dim):
+#         super(SparseAutoencoder, self).__init__()
+#         self.encoder = nn.Linear(num_items, latent_dim)
+#         self.decoder = nn.Linear(latent_dim, num_items)
+        
+#     def forward(self, x):
+#         encoded = torch.relu(self.encoder(x))
+#         decoded = self.decoder(encoded)
+#         # Scale sigmoid output to [1, 5]
+#         return 1 + 4 * torch.sigmoid(decoded)
+#         return decoded
+
 class SparseAutoencoder(nn.Module):
     def __init__(self, num_items, latent_dim):
         super(SparseAutoencoder, self).__init__()
-        self.encoder = nn.Linear(num_items, latent_dim)
-        self.decoder = nn.Linear(latent_dim, num_items)
+        hidden1 = latent_dim*2
+        self.encoder1 = nn.Linear(num_items, hidden1)
+        self.encoder2 = nn.Linear(hidden1, latent_dim)
+        self.decoder1 = nn.Linear(latent_dim, hidden1)
+        self.decoder2 = nn.Linear(hidden1, num_items)
         
     def forward(self, x):
-        encoded = torch.relu(self.encoder(x))
-        decoded = self.decoder(encoded)
+        x = torch.relu(self.encoder1(x))
+        x = torch.relu(self.encoder2(x))
+        x = torch.relu(self.decoder1(x))
+        x = self.decoder2(x)
         # Scale sigmoid output to [1, 5]
-        return 1 + 4 * torch.sigmoid(decoded)
-        return decoded
+        return 1 + 4 * torch.sigmoid(x)
 
     
 #initialize the model
 num_users = np.load("num_users.npy").item()
 num_items = np.load("num_items.npy").item()
-latent_dim = 100  # Number of latent features
+latent_dim = 335#100  # Number of latent features
 
 model = SparseAutoencoder(num_items, latent_dim)
 
 # Load your machine learning model (replace "model.pkl" with your actual model file)
 # Example: A model trained to predict numerical output based on text input
 try:
-    model.load_state_dict(torch.load("model{}.pkl".format(latent_dim)))
+    model.load_state_dict(torch.load("2model{}.pkl".format(latent_dim)))
 except FileNotFoundError:
     st.error("Model file not found! Make sure 'model.pkl' is in the same directory.")
 
