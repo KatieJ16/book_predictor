@@ -73,6 +73,10 @@ with open("suggest.pkl", "rb") as file:
 with open("average_ratings_list.pkl", "rb") as file:
     average_ratings_list = np.array(pickle.load(file))
     
+with open("images_dict.pkl", "rb") as file:
+    images_dict = pickle.load(file)
+   
+    
 num_titles = len(titles)
 
 # Load the list from the file
@@ -100,7 +104,7 @@ user_id = int(st.number_input("What is your User ID for goodreads:", step=1))
 
 # num_entries = int(st.number_input("Number of Books to import (the more you have, the better the recommendations, but the longer it will take):", step=1, value = 100))
 
-num_entries = 250#st.slider("Number of Books to import (the more you have, the better the recommendations, but the longer it will take):", min_value=1, max_value=1000, value=100, step=1)
+num_entries = st.slider("Number of Books to import (the more you have, the better the recommendations, but the longer it will take):", min_value=1, max_value=1000, value=100, step=1)
 
 include_rereads = st.checkbox('Include Rereads?')
 method = "Average"#st.selectbox('Choose an method (Choose Average for best results):', method_options)
@@ -283,7 +287,7 @@ if st.button("Predict"):
 #                             title_list.append(titles[idx])
 #                             pred_list.append(sum_ratings[idx])
                             col1, col2 = st.columns([0.2, 0.8])
-                            cover_url = get_goodreads_cover(titles[idx].split("\n")[0])
+                            cover_url = images_dict[titles[idx]]
                             with col1:
                                 try:
                                     st.image(cover_url)#, caption=image_list[image_index])#, use_column_width=True)
