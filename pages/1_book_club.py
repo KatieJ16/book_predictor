@@ -15,21 +15,23 @@ from goodreads_helpers import *
 # mask = (ratings_torch != 0).float()
 # print(mask)
 
-# st.sidebar.header("Book Club")
 
-# #Define autoencoder
-# class SparseAutoencoder(nn.Module):
-#     def __init__(self, num_items, latent_dim):
-#         super(SparseAutoencoder, self).__init__()
-#         self.encoder = nn.Linear(num_items, latent_dim)
-#         self.decoder = nn.Linear(latent_dim, num_items)
+class SparseAutoencoder(nn.Module):
+    def __init__(self, num_items, latent_dim):
+        super(SparseAutoencoder, self).__init__()
+        hidden1 = latent_dim*2
+        self.encoder1 = nn.Linear(num_items, hidden1)
+        self.encoder2 = nn.Linear(hidden1, latent_dim)
+        self.decoder1 = nn.Linear(latent_dim, hidden1)
+        self.decoder2 = nn.Linear(hidden1, num_items)
         
-#     def forward(self, x):
-#         encoded = torch.relu(self.encoder(x))
-#         decoded = self.decoder(encoded)
-#         # Scale sigmoid output to [1, 5]
-#         return 1 + 4 * torch.sigmoid(decoded)
-#         return decoded
+    def forward(self, x):
+        x = torch.relu(self.encoder1(x))
+        x = torch.relu(self.encoder2(x))
+        x = torch.relu(self.decoder1(x))
+        x = self.decoder2(x)
+        # Scale sigmoid output to [1, 5]
+        return 1 + 4 * torch.sigmoid(x)
 
     
 #initialize the model

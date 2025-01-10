@@ -32,6 +32,24 @@ num_users = np.load("num_users.npy").item()
 num_items = np.load("num_items.npy").item()
 latent_dim = 377#100  # Number of latent features
 
+
+class SparseAutoencoder(nn.Module):
+    def __init__(self, num_items, latent_dim):
+        super(SparseAutoencoder, self).__init__()
+        hidden1 = latent_dim*2
+        self.encoder1 = nn.Linear(num_items, hidden1)
+        self.encoder2 = nn.Linear(hidden1, latent_dim)
+        self.decoder1 = nn.Linear(latent_dim, hidden1)
+        self.decoder2 = nn.Linear(hidden1, num_items)
+        
+    def forward(self, x):
+        x = torch.relu(self.encoder1(x))
+        x = torch.relu(self.encoder2(x))
+        x = torch.relu(self.decoder1(x))
+        x = self.decoder2(x)
+        # Scale sigmoid output to [1, 5]
+        return 1 + 4 * torch.sigmoid(x)
+    
 model = SparseAutoencoder(num_items, latent_dim)
 
 # Load your machine learning model (replace "model.pkl" with your actual model file)
