@@ -70,6 +70,9 @@ with open("top_100.pkl", "rb") as file:
 with open("suggest.pkl", "rb") as file:
     suggest = pickle.load(file)
     
+with open("average_ratings_list.pkl", "rb") as file:
+    average_ratings_list = np.array(pickle.load(file))
+    
 num_titles = len(titles)
 
 # Load the list from the file
@@ -144,7 +147,7 @@ if st.button("Predict"):
 
             
             #make matrix of ratings
-            ratings = np.zeros((1, num_titles))
+            ratings = np.zeros((1, num_titles)) #average_ratings_list.reshape((1, num_titles))#
 
             for index, row in ratings_data.iterrows():
                 if row['Title'] in titles:
@@ -243,6 +246,7 @@ if st.button("Predict"):
                         else:
                             result[i] = 0
                     sum_ratings = result#combined[mask].mean(axis = 1)
+                    
                 sorted_indices = np.argsort(sum_ratings)[::-1]
                 score = np.zeros(sum_ratings.shape)
                 for idx, rating in enumerate(sum_ratings):
@@ -253,8 +257,11 @@ if st.button("Predict"):
                     if include_rereads and (ratings[0, idx] == 5): #if they rated 5, give big boost.
 #                         st.write("You loved ", titles[idx])
                         score[idx] += 0.1
+    
+                score += ((average_ratings_list - 5))
+                st.write("score size = ", score.shape)
                 #sort based on score
-#                 sorted_indices = np.argsort(score)[::-1]
+                sorted_indices = np.argsort(score)[::-1]
                 for idx in sorted_indices[:99]: 
                     if include_rereads:
                         if  (np.isnan(pred_ratings_list[idx])) :
@@ -268,6 +275,7 @@ if st.button("Predict"):
                                 pass
                         with col2:
                             st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(sum_ratings[idx], 1)))
+                            list_num += 1
                     else:#don't include rereads
                         if  (ratings[0, idx] > 0) or(np.isnan(pred_ratings_list[idx])) :
                             continue
@@ -282,7 +290,7 @@ if st.button("Predict"):
                                 except:
                                     pass
                             with col2:
-                                st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(sum_ratings[idx], 1)))#,  ' - Score: ', str(round(score[idx],1)))
+                                st.write( str(list_num)+'.' , titles[idx], " - Predicted Rating:", str(round(sum_ratings[idx], 1)))#,  ' - Score: ', str(round(score[idx],1)))
 #                             if round(sum_ratings[idx], 1) > 0:
 #                                 neighbor_ratings = np.array([ratings_matrix[i, idx] for i in indices[0] if not np.isnan(ratings_matrix[i, idx])])
 #                                 st.write(str(neighbor_ratings[np.nonzero(neighbor_ratings)]))
