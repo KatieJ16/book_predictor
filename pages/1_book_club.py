@@ -56,6 +56,10 @@ with open("titles.pkl", "rb") as file:
 with open("top_100.pkl", "rb") as file:
     top_100 = pickle.load(file)
     
+    
+with open("suggest.pkl", "rb") as file:
+    suggest = pickle.load(file)
+    
 num_titles = len(titles)
 
 # Load the list from the file
@@ -116,7 +120,7 @@ if st.button("Predict"):
             st.write("Top books are:")
             list_num = 1
             for idx in sorted_indices[:100]: 
-                if  (np.isnan(mean_ratings[idx])) or titles[idx] in ratings_data['Title'].values:
+                if  (np.isnan(mean_ratings[idx])) or titles[idx] in ratings_data['Title'].values or not suggest[idx]:
                     continue
                 col1, col2 = st.columns([0.2, 0.8])
                 cover_url = get_goodreads_cover(titles[idx].split("\n")[0])
