@@ -26,42 +26,11 @@ st.set_page_config(
 
 st.sidebar.success("Select a demo above.")
 
-# #Define autoencoder
-# class SparseAutoencoder(nn.Module):
-#     def __init__(self, num_items, latent_dim):
-#         super(SparseAutoencoder, self).__init__()
-#         self.encoder = nn.Linear(num_items, latent_dim)
-#         self.decoder = nn.Linear(latent_dim, num_items)
-        
-#     def forward(self, x):
-#         encoded = torch.relu(self.encoder(x))
-#         decoded = self.decoder(encoded)
-#         # Scale sigmoid output to [1, 5]
-#         return 1 + 4 * torch.sigmoid(decoded)
-#         return decoded
 
-class SparseAutoencoder(nn.Module):
-    def __init__(self, num_items, latent_dim):
-        super(SparseAutoencoder, self).__init__()
-        hidden1 = latent_dim*2
-        self.encoder1 = nn.Linear(num_items, hidden1)
-        self.encoder2 = nn.Linear(hidden1, latent_dim)
-        self.decoder1 = nn.Linear(latent_dim, hidden1)
-        self.decoder2 = nn.Linear(hidden1, num_items)
-        
-    def forward(self, x):
-        x = torch.relu(self.encoder1(x))
-        x = torch.relu(self.encoder2(x))
-        x = torch.relu(self.decoder1(x))
-        x = self.decoder2(x)
-        # Scale sigmoid output to [1, 5]
-        return 1 + 4 * torch.sigmoid(x)
-
-    
 #initialize the model
 num_users = np.load("num_users.npy").item()
 num_items = np.load("num_items.npy").item()
-latent_dim = 335#100  # Number of latent features
+latent_dim = 377#100  # Number of latent features
 
 model = SparseAutoencoder(num_items, latent_dim)
 
@@ -110,10 +79,10 @@ user_id = int(st.number_input("What is your User ID for goodreads:", step=1))
 
 # num_entries = int(st.number_input("Number of Books to import (the more you have, the better the recommendations, but the longer it will take):", step=1, value = 100))
 
-num_entries = st.slider("Number of Books to import (the more you have, the better the recommendations, but the longer it will take):", min_value=1, max_value=1000, value=100, step=1)
+num_entries = 250#st.slider("Number of Books to import (the more you have, the better the recommendations, but the longer it will take):", min_value=1, max_value=1000, value=100, step=1)
 
 include_rereads = st.checkbox('Include Rereads?')
-method = st.selectbox('Choose an method (Choose Average for best results):', method_options)
+method = "Average"#st.selectbox('Choose an method (Choose Average for best results):', method_options)
 # Predict button
 if st.button("Predict"):
     if user_id:
@@ -299,7 +268,7 @@ if st.button("Predict"):
 #                             if round(sum_ratings[idx], 1) > 0:
 #                                 neighbor_ratings = np.array([ratings_matrix[i, idx] for i in indices[0] if not np.isnan(ratings_matrix[i, idx])])
 #                                 st.write(str(neighbor_ratings[np.nonzero(neighbor_ratings)]))
-                    list_num += 1
+                            list_num += 1
 #                 display_image_grid(title_list, pred_list, columns=3)
                 
         except Exception as e:

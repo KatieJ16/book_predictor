@@ -10,6 +10,9 @@ import math
 from PIL import Image,  ImageOps, ImageDraw
 from io import BytesIO
 import base64
+import torch
+import torch.nn as nn
+import torch.optim as optim
 
 
 def scrape_goodreads_ratings(user_id, max_pages=10):
@@ -221,3 +224,36 @@ def display_image_grid(image_list, pred_ratings_list=None, columns=3):
                         pass
                     if pred_ratings_list is not None:
                         st.write(image_list[image_index] + " - Predicted Rating:", str(round(pred_ratings_list[image_index], 1)))
+                        
+                        
+                        
+# #Define autoencoder
+# class SparseAutoencoder(nn.Module):
+#     def __init__(self, num_items, latent_dim):
+#         super(SparseAutoencoder, self).__init__()
+#         self.encoder = nn.Linear(num_items, latent_dim)
+#         self.decoder = nn.Linear(latent_dim, num_items)
+        
+#     def forward(self, x):
+#         encoded = torch.relu(self.encoder(x))
+#         decoded = self.decoder(encoded)
+#         # Scale sigmoid output to [1, 5]
+#         return 1 + 4 * torch.sigmoid(decoded)
+#         return decoded
+
+class SparseAutoencoder(nn.Module):
+    def __init__(self, num_items, latent_dim):
+        super(SparseAutoencoder, self).__init__()
+        hidden1 = latent_dim*2
+        self.encoder1 = nn.Linear(num_items, hidden1)
+        self.encoder2 = nn.Linear(hidden1, latent_dim)
+        self.decoder1 = nn.Linear(latent_dim, hidden1)
+        self.decoder2 = nn.Linear(hidden1, num_items)
+        
+    def forward(self, x):
+        x = torch.relu(self.encoder1(x))
+        x = torch.relu(self.encoder2(x))
+        x = torch.relu(self.decoder1(x))
+        x = self.decoder2(x)
+        # Scale sigmoid output to [1, 5]
+        return 1 + 4 * torch.sigmoid(x)
