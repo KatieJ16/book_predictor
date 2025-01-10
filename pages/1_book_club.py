@@ -74,7 +74,7 @@ user_id = st.text_input("What are the User IDs for goodreads: (comma separate ea
 
 # Convert to list of numbers
 user_id = [int(x.strip()) for x in user_id.split(",")]
-st.write("user_id = ", user_id)
+# st.write("user_id = ", user_id)
 
 # num_entries = int(st.number_input("Number of Latest book reviews to consider (the more you have the better recommendations you'll get but the longer it will take):", step=1, value = 25))
 num_entries = st.slider("Number of Books to import (the more you have, the better the recommendations, but the longer it will take):", min_value=1, max_value=500, value=20, step=1)
@@ -85,6 +85,7 @@ num_entries = st.slider("Number of Books to import (the more you have, the bette
 if st.button("Predict"):
     if user_id:
         try:
+            
             #get user data
             ratings_data = get_user_data(user_id, num_entries=num_entries)
             
@@ -115,7 +116,15 @@ if st.button("Predict"):
             for idx in sorted_indices[:100]: 
                 if  (np.isnan(mean_ratings[idx])) or titles[idx] in ratings_data['Title'].values:
                     continue
-                st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(mean_ratings[idx], 1)))
+                col1, col2 = st.columns([0.2, 0.8])
+                cover_url = get_goodreads_cover(titles[idx].split("\n")[0])
+                with col1:
+                    try:
+                        st.image(cover_url)#, caption=image_list[image_index])#, use_column_width=True)
+                    except:
+                        pass
+                with col2:
+                    st.write( str(list_num) , titles[idx], " - Predicted Rating:", str(round(mean_ratings[idx], 1)))
                 list_num += 1
 #                 st.write("Predicted each = ", pred_ratings_list[:,idx])
         except Exception as e:

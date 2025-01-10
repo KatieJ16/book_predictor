@@ -8,6 +8,8 @@ import random
 import streamlit as st
 import math
 from PIL import Image,  ImageOps, ImageDraw
+from io import BytesIO
+import base64
 
 
 def scrape_goodreads_ratings(user_id, max_pages=10):
@@ -85,11 +87,38 @@ def get_user_data(user_id, save=False, num_entries=100, file_name="book_club_rat
         ratings_data = scrape_goodreads_ratings(user_id, max_pages)
     elif isinstance(user_id, list): #if many users
         for user in user_id:
-            try:
+
+            col1, col2 = st.columns([0.1, 0.9])
+            with col1:
+                #get user id picture:
+                url = f"https://www.goodreads.com/user/show/{user}"
+                headers = {"User-Agent": "Mozilla/5.0"}
+                response = requests.get(url, headers=headers)
+
+#                 st.write(response.status_code)
+
+                # Check if the request was successful
+                if response.status_code == 200:
+                    soup = BeautifulSoup(response.content, 'html.parser')
+
+                    # Extract the profile picture (typically within an <img> tag)
+                    profile_picture_tag = soup.find('img', class_='og:image')
+                    og_image_tag = soup.find('meta', property='og:image')
+                    profile_picture_url = og_image_tag['content']
+                    if og_image_tag:
+                        img_response = requests.get(profile_picture_url)
+                        if img_response.status_code == 200:
+                            img = Image.open(BytesIO(img_response.content))
+
+                        # Display the profile picture
+                        st.image(crop_circle(img))#, caption="Goodreads Profile Picture")
+                        
+            with col2:
                 new_data = scrape_goodreads_ratings(user, max_pages)
+            try:
                 ratings_data = pd.concat([ratings_data, new_data], ignore_index=True)
             except:
-                ratings_data = scrape_goodreads_ratings(user, max_pages)
+                ratings_data = new_data#scrape_goodreads_ratings(user, max_pages)
     else: 
         st.write("Problem, Check that input is comma seperated.")
 #     st.write("num entries = ", ratings_data.shape)

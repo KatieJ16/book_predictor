@@ -233,7 +233,16 @@ if st.button("Recommend Books!"):
                     pass
                 else:
                     if nonzeros_per_column[idx] > 3:
-                        st.write(str(i+1), ": ", titles[idx], "- Predicted Rating: ", str(round(average_ratings[idx], 1)))#, "Number rated", str(nonzeros_per_column[idx]))
+                        col1, col2 = st.columns([0.2, 0.8])
+                        cover_url = get_goodreads_cover(titles[idx].split("\n")[0])
+                        with col1:
+                            try:
+                                st.image(cover_url)#, caption=image_list[image_index])#, use_column_width=True)
+                            except:
+                                pass
+                        with col2:
+                            st.write(  titles[idx], " - Predicted Rating:", str(round(average_ratings[idx], 1)))
+#                         st.write(str(i+1), ": ", titles[idx], "- Predicted Rating: ", str(round(average_ratings[idx], 1)))#, "Number rated", str(nonzeros_per_column[idx]))
 
 
             #########
